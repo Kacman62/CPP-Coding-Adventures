@@ -1,9 +1,9 @@
 #include <ftxui/dom/elements.hpp>
+#include <ftxui/component/component.hpp>
 #include <ftxui/dom/canvas.hpp>
 #include <ftxui/screen/screen.hpp>
 #include <ftxui/screen/terminal.hpp>
 #include <ftxui/component/screen_interactive.hpp>
-#include <ftxui/component/component.hpp>
 
 #include <iostream>
 #include <ctime>
@@ -14,10 +14,10 @@
 using namespace ftxui;
 // comment
 
-void setup();
-void update_simulation();
+void setup(int w, int h);
+void updateSimulation();
 float getDistance(int x1, int y1, int x2, int y2);
-Element renderScene();
+Element renderScene(int w, int h);
 int randomInt(int min, int max);
 
 int numPlanets;
@@ -44,22 +44,27 @@ struct planet
 std::vector<satellite> satVec;
 std::vector<planet> planetVec;
 
-auto screen = ftxui::ScreenInteractive::TerminalOutput();
-
 int main()
 {
-    setup();
 
+    auto screen = ScreenInteractive::Fullscreen();
     // Renderer Component: updates the scene each frame
-    auto renderer = Renderer([&]
-                             { return renderScene(); });
 
-    auto screen = ScreenInteractive::TerminalOutput();
+    int width = screen.dimx();
+    int height = screen.dimy();
+
+    setup(width, height);
+
+    screen.RequestAnimationFrame();
+
+    auto renderer = Renderer([&]
+                             { return renderScene(2 * width,
+                                                  4 * height); });
 
     screen.Loop(renderer); // Runs the interactive loop
 }
 
-void setup()
+void setup(int w, int h)
 {
 
     numPlanets = rand() % 3 + 1;
@@ -70,8 +75,9 @@ void setup()
         planetVec.push_back(planet());
         planetVec.at(i).gravity = (float)(randomInt(2, 10));
         planetVec.at(i).radius = randomInt(2, 10);
-        planetVec.at(i).xPos = randomInt(8, 20);
-        planetVec.at(i).yPos = randomInt(8, 40);
+        // add some padding to keep radius in range
+        planetVec.at(i).xPos = randomInt(w / 10, w - w / 10);
+        planetVec.at(i).yPos = randomInt(h / 10, h - h / 10);
     }
     // init sats
     for (int i = 0; i < numSatellites; i++)
@@ -79,27 +85,23 @@ void setup()
         satVec.push_back(satellite());
         satVec.at(i).gravity = (float)(randomInt(2, 10));
         satVec.at(i).radius = randomInt(2, 10);
-        satVec.at(i).xPos = randomInt(8, 20);
-        satVec.at(i).yPos = randomInt(8, 40);
+        satVec.at(i).xPos = randomInt(w / 10, w - w / 10);
+        satVec.at(i).yPos = randomInt(h / 10, h - h / 10);
     }
 }
 
-Element renderScene()
+Element renderScene(int w, int h)
 {
+    std::cout << w;
+    std::cout << h;
 
-    Canvas c(100, 100);
+    Canvas c(w, h);
 
-    // Draw satellites
     for (auto &s : satVec)
-    {
         c.DrawPointCircleFilled(s.xPos, s.yPos, s.radius);
-    }
 
-    // Draw planets
     for (auto &p : planetVec)
-    {
         c.DrawPointCircleFilled(p.xPos, p.yPos, p.radius);
-    }
 
     return canvas(c);
 }
@@ -107,7 +109,7 @@ Element renderScene()
 // distance formula
 float getDistance(int x1, int y1, int x2, int y2)
 {
-    return (float)(sqrt(pow((x2 + x1), 2) - pow((y2 + y1), 2)));
+    return (float)(sqrt(pow((x2 - x1), 2) + pow((y2 - y1), 2)));
 }
 
 std::mt19937 rng(std::random_device{}());
@@ -116,4 +118,8 @@ int randomInt(int min, int max)
 {
     std::uniform_int_distribution<int> dist(min, max);
     return dist(rng);
+}
+
+void updateSimulation()
+{
 }

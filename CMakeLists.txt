@@ -11,4 +11,4 @@ add_subdirectory(third_party/FTXUI)
 add_executable(my_app main.cpp)
 
 # Link FTXUI libraries
-target_link_libraries(my_app PRIVATE ftxui::screen ftxui::dom ftxui::component)
+target_link_libraries(my_app PRIVATE ftxui::dom ftxui::component)
