@@ -66,14 +66,14 @@ int main()
 void setup(int w, int h)
 {
 
-    numPlanets = rand() % 3 + 1;
-    numSatellites = rand() % 6 + 2;
+    numPlanets = randomInt(1, 3);
+    numSatellites = randomInt(1, 5);
     // init planets
     for (int i = 0; i < numPlanets; i++)
     {
         planetVec.push_back(planet());
         planetVec.at(i).gravity = (float)(randomInt(2, 10));
-        planetVec.at(i).radius = randomInt(2, 10);
+        planetVec.at(i).radius = randomInt(8, 14);
         // add some padding to keep radius in range
         planetVec.at(i).xPos = randomInt(w / 10, w - w / 10);
         planetVec.at(i).yPos = randomInt(h / 10, h - h / 10);
@@ -84,7 +84,7 @@ void setup(int w, int h)
     {
         satVec.push_back(satellite());
         satVec.at(i).gravity = (float)(randomInt(2, 10));
-        satVec.at(i).radius = randomInt(2, 10);
+        satVec.at(i).radius = randomInt(2, 6);
         satVec.at(i).xPos = randomInt(w / 10, w - w / 10);
         satVec.at(i).yPos = randomInt(h / 10, h - h / 10);
         satVec.at(i).color = Color(static_cast<Color::Palette256>(randomInt(0, 255)));
