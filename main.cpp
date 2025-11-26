@@ -4,6 +4,7 @@
 #include <ftxui/screen/screen.hpp>
 #include <ftxui/screen/terminal.hpp>
 #include <ftxui/component/screen_interactive.hpp>
+#include <ftxui/screen/color.hpp>
 
 #include <iostream>
 #include <ctime>
@@ -31,6 +32,7 @@ struct satellite
     int yPos;
     int radius;
     float gravity;
+    Color color;
 };
 
 struct planet
@@ -39,6 +41,7 @@ struct planet
     int yPos;
     int radius;
     float gravity;
+    Color color;
 };
 
 std::vector<satellite> satVec;
@@ -46,22 +49,18 @@ std::vector<planet> planetVec;
 
 int main()
 {
-
     auto screen = ScreenInteractive::Fullscreen();
-    // Renderer Component: updates the scene each frame
 
-    int width = screen.dimx();
-    int height = screen.dimy();
+    // adjust for braille scaling
+    int canvas_width = screen.dimx() * 2;
+    int canvas_height = screen.dimy() * 4;
 
-    setup(width, height);
-
-    screen.RequestAnimationFrame();
+    setup(canvas_width, canvas_height);
 
     auto renderer = Renderer([&]
-                             { return renderScene(2 * width,
-                                                  4 * height); });
+                             { return renderScene(canvas_width, canvas_height) | flex; });
 
-    screen.Loop(renderer); // Runs the interactive loop
+    screen.Loop(renderer);
 }
 
 void setup(int w, int h)
@@ -78,6 +77,7 @@ void setup(int w, int h)
         // add some padding to keep radius in range
         planetVec.at(i).xPos = randomInt(w / 10, w - w / 10);
         planetVec.at(i).yPos = randomInt(h / 10, h - h / 10);
+        planetVec.at(i).color = Color(static_cast<Color::Palette256>(randomInt(0, 255)));
     }
     // init sats
     for (int i = 0; i < numSatellites; i++)
@@ -87,23 +87,22 @@ void setup(int w, int h)
         satVec.at(i).radius = randomInt(2, 10);
         satVec.at(i).xPos = randomInt(w / 10, w - w / 10);
         satVec.at(i).yPos = randomInt(h / 10, h - h / 10);
+        satVec.at(i).color = Color(static_cast<Color::Palette256>(randomInt(0, 255)));
     }
 }
 
 Element renderScene(int w, int h)
 {
-    std::cout << w;
-    std::cout << h;
 
-    Canvas c(w, h);
+    auto c = Canvas(w, h);
 
     for (auto &s : satVec)
-        c.DrawPointCircleFilled(s.xPos, s.yPos, s.radius);
+        c.DrawPointCircleFilled(s.xPos, s.yPos, s.radius, s.color);
 
     for (auto &p : planetVec)
-        c.DrawPointCircleFilled(p.xPos, p.yPos, p.radius);
+        c.DrawPointCircleFilled(p.xPos, p.yPos, p.radius, p.color);
 
-    return canvas(c);
+    return canvas(std::move(c));
 }
 
 // distance formula
